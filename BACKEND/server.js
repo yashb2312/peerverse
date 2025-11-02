@@ -2914,14 +2914,11 @@ app.get('/api/webrtc/status/:userId', async (req, res) => {
       features: ['HD Video', 'Audio', 'Screen Share', 'Chat'],
       maxDuration: 10, // minutes
       iceServers: [
-        // Primary Cloudflare TURN servers (your credentials)
+        // Primary ExpressTurn TURN server for cross-network connectivity
         {
-          urls: [
-            'turn:turn.cloudflare.com:3478',
-            'turns:turn.cloudflare.com:5349'
-          ],
-          username: 'ccb11479d57e58d6450a4743bad9a1e8',
-          credential: '75063d2f78527ff8115025d127e87619d62c4428ed6ff1b001fc3cf03d0ba514'
+          urls: ['turn:relay1.expressturn.com:3480'],
+          username: '000000002074822364',
+          credential: 'WnbuuoA398ZVw+A920nzNkU8eiw='
         },
         // STUN servers
         { urls: 'stun:stun.l.google.com:19302' },
@@ -2952,8 +2949,8 @@ app.post('/api/webrtc/test-connectivity', async (req, res) => {
       recommendations: {
         useRelay: true,
         preferredServers: [
-          'turn:openrelay.metered.ca:80',
-          'turn:relay1.expressturn.com:3478'
+          'turn:relay1.expressturn.com:3480',
+          'turn:openrelay.metered.ca:80'
         ]
       }
     });
@@ -2978,14 +2975,11 @@ app.post('/api/webrtc/session/create', async (req, res) => {
       sessionId: callId,
       message: 'WebRTC session created',
       iceServers: [
-        // Primary Cloudflare TURN servers (your credentials)
+        // Primary ExpressTurn TURN server for cross-network connectivity
         {
-          urls: [
-            'turn:turn.cloudflare.com:3478',
-            'turns:turn.cloudflare.com:5349'
-          ],
-          username: CLOUDFLARE_APP_ID,
-          credential: CLOUDFLARE_API_TOKEN
+          urls: ['turn:relay1.expressturn.com:3480'],
+          username: '000000002074822364',
+          credential: 'WnbuuoA398ZVw+A920nzNkU8eiw='
         },
         // STUN servers for connectivity
         { urls: 'stun:stun.l.google.com:19302' },
@@ -2995,11 +2989,6 @@ app.post('/api/webrtc/session/create', async (req, res) => {
           urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443'],
           username: 'openrelayproject',
           credential: 'openrelayproject'
-        },
-        {
-          urls: ['turn:relay1.expressturn.com:3478'],
-          username: 'ef3CYGPRL8ZPAA5KXC',
-          credential: 'Hj8pBqZnfQmxrLzM'
         }
       ]
     });
@@ -3429,6 +3418,25 @@ app.post('/api/video-call/:callId/accept', async (req, res) => {
       ['accepted', new Date().toISOString(), callId]
     );
     
+    // Schedule auto-completion after 10 minutes
+    setTimeout(async () => {
+      try {
+        const result = await pool.query(
+          'UPDATE video_calls SET status = $1, ended_at = $2 WHERE id = $3 AND status = $4 RETURNING *',
+          ['completed', new Date().toISOString(), callId, 'accepted']
+        );
+        
+        if (result.rows.length > 0) {
+          console.log(`Auto-completed session ${callId} after 10 minutes`);
+          // Clear cache to update UI
+          clearCachePattern(`user_calls_${mentorId}`);
+          clearCachePattern(`user_calls_${call.rows[0].mentee_id}`);
+        }
+      } catch (error) {
+        console.error('Auto-complete session error:', error);
+      }
+    }, 10 * 60 * 1000); // 10 minutes
+    
     // Get mentee details for notification
     const mentee = await pool.query(
       'SELECT username FROM users WHERE id = $1',
@@ -3444,7 +3452,7 @@ app.post('/api/video-call/:callId/accept', async (req, res) => {
     if (mentee.rows.length > 0) {
       await pool.query(
         'INSERT INTO notifications (user_id, type, title, message, related_id, related_type) VALUES ($1, $2, $3, $4, $5, $6)',
-        [call.rows[0].mentee_id, 'call_accepted', 'Call Accepted', 'Your video call request has been accepted. You can now join the session.', callId, 'video_call']
+        [call.rows[0].mentee_id, 'call_accepted', 'Call Accepted', 'Your video call request has been accepted. You have 10 minutes to join the session.', callId, 'video_call']
       );
     }
     
@@ -3454,7 +3462,7 @@ app.post('/api/video-call/:callId/accept', async (req, res) => {
       io.to(`user_${call.rows[0].mentee_id}`).emit('call_accepted', {
         callId,
         channelName: call.rows[0].channel_name,
-        message: 'Your call has been accepted'
+        message: 'Your call has been accepted. You have 10 minutes to join.'
       });
       console.log(`✅ Call accepted notification sent to mentee ${call.rows[0].mentee_id}`);
     } else {
@@ -3641,7 +3649,19 @@ app.get('/api/video-calls/:userId', async (req, res) => {
       SELECT vc.id, vc.status, vc.created_at, vc.accepted_at, vc.started_at, vc.ended_at, vc.channel_name,
              vc.payment_confirmed, vc.payment_amount, vc.payment_id,
              mentee.username as mentee_name,
-             mentor.username as mentor_name
+             mentor.username as mentor_name,
+             CASE 
+               WHEN vc.status = 'accepted' AND vc.accepted_at IS NOT NULL 
+                    AND EXTRACT(EPOCH FROM (NOW() - vc.accepted_at::timestamp))/60 < 10 
+               THEN true
+               ELSE false
+             END as join_button_active,
+             CASE 
+               WHEN vc.status = 'accepted' AND vc.accepted_at IS NOT NULL 
+                    AND EXTRACT(EPOCH FROM (NOW() - vc.accepted_at::timestamp))/60 >= 10 
+               THEN 'completed'
+               ELSE vc.status
+             END as display_status
       FROM video_calls vc
       JOIN users mentee ON vc.mentee_id = mentee.id
       JOIN users mentor ON vc.mentor_id = mentor.id
@@ -3649,6 +3669,21 @@ app.get('/api/video-calls/:userId', async (req, res) => {
       ORDER BY vc.created_at DESC
       LIMIT 15
     `, [userId]);
+    
+    // Auto-update sessions that have exceeded 10 minutes
+    const sessionsToUpdate = result.rows.filter(call => 
+      call.status === 'accepted' && 
+      call.accepted_at && 
+      !call.join_button_active &&
+      call.display_status === 'completed'
+    );
+    
+    for (const session of sessionsToUpdate) {
+      await pool.query(
+        'UPDATE video_calls SET status = $1, ended_at = $2 WHERE id = $3 AND status = $4',
+        ['completed', new Date().toISOString(), session.id, 'accepted']
+      );
+    }
     
     setCache(cacheKey, result.rows, 30000); // 30 second cache
     res.json({ calls: result.rows });
@@ -3661,6 +3696,32 @@ app.get('/api/video-calls/:userId', async (req, res) => {
 app.delete('/api/video-call/:callId', async (req, res) => {
   try {
     const { callId } = req.params;
+    
+    // Check if session exists and get its details
+    const sessionResult = await pool.query(
+      'SELECT id, status, accepted_at FROM video_calls WHERE id = $1',
+      [callId]
+    );
+    
+    if (sessionResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+    
+    const session = sessionResult.rows[0];
+    
+    // Check if session is accepted and within 10 minutes
+    if (session.status === 'accepted' && session.accepted_at) {
+      const acceptedTime = new Date(session.accepted_at);
+      const currentTime = new Date();
+      const timeDiff = (currentTime - acceptedTime) / (1000 * 60); // difference in minutes
+      
+      if (timeDiff < 10) {
+        return res.status(400).json({ 
+          error: 'Cannot delete session. Join button is still active.',
+          timeRemaining: Math.ceil(10 - timeDiff)
+        });
+      }
+    }
     
     await pool.query(
       'DELETE FROM video_calls WHERE id = $1',
