@@ -2914,21 +2914,30 @@ app.get('/api/webrtc/status/:userId', async (req, res) => {
       features: ['HD Video', 'Audio', 'Screen Share', 'Chat'],
       maxDuration: 10, // minutes
       iceServers: [
-        // Primary ExpressTurn TURN server for cross-network connectivity
+        // Multiple TURN servers for better reliability
         {
-          urls: ['turn:relay1.expressturn.com:3480'],
+          urls: [
+            'turn:relay1.expressturn.com:3478',
+            'turn:relay1.expressturn.com:3480',
+            'turns:relay1.expressturn.com:5349'
+          ],
           username: '000000002074822364',
           credential: 'WnbuuoA398ZVw+A920nzNkU8eiw='
         },
-        // STUN servers
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-        // Backup TURN servers
         {
           urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443'],
           username: 'openrelayproject',
           credential: 'openrelayproject'
-        }
+        },
+        {
+          urls: ['turn:relay.metered.ca:80', 'turn:relay.metered.ca:443'],
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        },
+        // STUN servers
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' }
       ]
     });
   } catch (error) {
@@ -2975,21 +2984,30 @@ app.post('/api/webrtc/session/create', async (req, res) => {
       sessionId: callId,
       message: 'WebRTC session created',
       iceServers: [
-        // Primary ExpressTurn TURN server for cross-network connectivity
+        // Multiple TURN servers for better reliability
         {
-          urls: ['turn:relay1.expressturn.com:3480'],
+          urls: [
+            'turn:relay1.expressturn.com:3478',
+            'turn:relay1.expressturn.com:3480',
+            'turns:relay1.expressturn.com:5349'
+          ],
           username: '000000002074822364',
           credential: 'WnbuuoA398ZVw+A920nzNkU8eiw='
         },
-        // STUN servers for connectivity
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-        // Backup TURN servers
         {
           urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443'],
           username: 'openrelayproject',
           credential: 'openrelayproject'
-        }
+        },
+        {
+          urls: ['turn:relay.metered.ca:80', 'turn:relay.metered.ca:443'],
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        },
+        // STUN servers for connectivity
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' }
       ]
     });
   } catch (error) {
