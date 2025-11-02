@@ -2914,27 +2914,17 @@ app.get('/api/webrtc/status/:userId', async (req, res) => {
       features: ['HD Video', 'Audio', 'Screen Share', 'Chat'],
       maxDuration: 10, // minutes
       iceServers: [
-        // Primary working TURN servers
+        // ExpressTurn TURN server (primary)
         {
-          urls: [
-            'turn:numb.viagenie.ca',
-            'turns:numb.viagenie.ca'
-          ],
-          username: 'webrtc@live.com',
-          credential: 'muazkh'
+          urls: ['turn:relay1.expressturn.com:3480'],
+          username: '000000002074822364',
+          credential: 'WnbuuoA398ZVw+A920nzNkU8eiw='
         },
+        // Backup TURN servers
         {
           urls: ['turn:openrelay.metered.ca:80'],
           username: 'openrelayproject',
           credential: 'openrelayproject'
-        },
-        {
-          urls: [
-            'turn:relay1.expressturn.com:3478',
-            'turn:relay1.expressturn.com:3480'
-          ],
-          username: '000000002074822364',
-          credential: 'WnbuuoA398ZVw+A920nzNkU8eiw='
         },
         // STUN servers
         { urls: 'stun:stun.l.google.com:19302' },
@@ -2985,27 +2975,17 @@ app.post('/api/webrtc/session/create', async (req, res) => {
       sessionId: callId,
       message: 'WebRTC session created',
       iceServers: [
-        // Primary working TURN servers
+        // ExpressTurn TURN server (primary)
         {
-          urls: [
-            'turn:numb.viagenie.ca',
-            'turns:numb.viagenie.ca'
-          ],
-          username: 'webrtc@live.com',
-          credential: 'muazkh'
+          urls: ['turn:relay1.expressturn.com:3480'],
+          username: '000000002074822364',
+          credential: 'WnbuuoA398ZVw+A920nzNkU8eiw='
         },
+        // Backup TURN servers
         {
           urls: ['turn:openrelay.metered.ca:80'],
           username: 'openrelayproject',
           credential: 'openrelayproject'
-        },
-        {
-          urls: [
-            'turn:relay1.expressturn.com:3478',
-            'turn:relay1.expressturn.com:3480'
-          ],
-          username: '000000002074822364',
-          credential: 'WnbuuoA398ZVw+A920nzNkU8eiw='
         },
         // STUN servers for connectivity
         { urls: 'stun:stun.l.google.com:19302' },
