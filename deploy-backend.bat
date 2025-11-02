@@ -27,9 +27,9 @@ railway up
 
 echo.
 echo Deployment complete!
-echo Your backend should now be available at: https://peerversefinal-production.up.railway.app
+echo Your backend should now be available at: https://gleaming-inspiration-production-5a37.up.railway.app
 echo.
 echo Testing CORS endpoint...
-curl -H "Origin: https://www.peerverse.in" https://peerversefinal-production.up.railway.app/api/cors-test
+curl -H "Origin: https://www.peerverse.in" https://gleaming-inspiration-production-5a37.up.railway.app/api/cors-test
 
 pause

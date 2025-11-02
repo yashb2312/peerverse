@@ -1,7 +1,7 @@
 # CORS Fix Summary
 
 ## Problem
-The frontend at `https://www.peerverse.in` was getting CORS errors when trying to access the Railway backend API at `https://peerversefinal-production.up.railway.app/api/session-feedback`.
+The frontend at `https://www.peerverse.in` was getting CORS errors when trying to access the Railway backend API at `https://gleaming-inspiration-production-5a37.up.railway.app/api/session-feedback`.
 
 ## Root Cause
 The CORS configuration in the backend was not properly handling requests from the frontend domain.

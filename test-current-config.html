@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Current API Configuration</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>🔍 API Configuration Test</h1>
+    <div id="results"></div>
+    
+    <script type="module">
+        const results = document.getElementById('results');
+        
+        // Simulate the config logic
+        const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+        
+        const config = {
+            API_BASE_URL: isProduction 
+                ? 'https://gleaming-inspiration-production-5a37.up.railway.app/api'
+                : 'http://localhost:3000/api',
+            SOCKET_URL: isProduction
+                ? 'https://gleaming-inspiration-production-5a37.up.railway.app'
+                : 'http://localhost:3000'
+        };
+        
+        results.innerHTML += `
+            <div class="result info">
+                <h3>🌐 Environment Detection</h3>
+                <p><strong>Current hostname:</strong> ${window.location.hostname}</p>
+                <p><strong>Is Production:</strong> ${isProduction}</p>
+                <p><strong>NODE_ENV:</strong> ${process?.env?.NODE_ENV || 'undefined (browser context)'}</p>
+            </div>
+            
+            <div class="result ${config.API_BASE_URL.includes('gleaming-inspiration') ? 'success' : 'error'}">
+                <h3>🔗 API Configuration</h3>
+                <p><strong>API_BASE_URL:</strong> ${config.API_BASE_URL}</p>
+                <p><strong>SOCKET_URL:</strong> ${config.SOCKET_URL}</p>
+            </div>
+        `;
+        
+        // Test API connectivity
+        async function testAPI() {
+            try {
+                results.innerHTML += `<div class="result info"><h3>🧪 Testing API Connection...</h3></div>`;
+                
+                const response = await fetch(`${config.API_BASE_URL}/test`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    results.innerHTML += `
+                        <div class="result success">
+                            <h3>✅ API Connection Successful</h3>
+                            <p>Response: ${JSON.stringify(data)}</p>
+                        </div>
+                    `;
+                } else {
+                    results.innerHTML += `
+                        <div class="result error">
+                            <h3>❌ API Connection Failed</h3>
+                            <p>Status: ${response.status} ${response.statusText}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                results.innerHTML += `
+                    <div class="result error">
+                        <h3>❌ API Connection Error</h3>
+                        <p>Error: ${error.message}</p>
+                        <p>This might be due to CORS or network issues</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Test after a short delay
+        setTimeout(testAPI, 1000);
+        
+        // Add instructions
+        results.innerHTML += `
+            <div class="result info">
+                <h3>📋 Troubleshooting Steps</h3>
+                <ol>
+                    <li><strong>Clear Browser Cache:</strong> Press Ctrl+Shift+Delete and clear all cached data</li>
+                    <li><strong>Clear Local Storage:</strong> Press F12 → Application → Local Storage → Clear All</li>
+                    <li><strong>Hard Refresh:</strong> Press Ctrl+F5 or Ctrl+Shift+R</li>
+                    <li><strong>Check Environment:</strong> Ensure NODE_ENV is set correctly</li>
+                    <li><strong>Restart Server:</strong> Stop and restart your development server</li>
+                    <li><strong>Redeploy:</strong> If using Vercel/Netlify, trigger a new deployment</li>
+                </ol>
+            </div>
+        `;
+    </script>
+</body>
+</html>
