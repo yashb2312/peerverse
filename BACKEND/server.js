@@ -2916,14 +2916,6 @@ app.get('/api/webrtc/status/:userId', async (req, res) => {
       iceServers: [
         {
           urls: [
-            'turn:numb.viagenie.ca',
-            'turns:numb.viagenie.ca'
-          ],
-          username: 'webrtc@live.com',
-          credential: 'muazkh'
-        },
-        {
-          urls: [
             'turn:relay1.expressturn.com:3480',
             'turn:relay1.expressturn.com:80',
             'turn:relay1.expressturn.com:443'
@@ -2987,14 +2979,6 @@ app.post('/api/webrtc/session/create', async (req, res) => {
       sessionId: callId,
       message: 'WebRTC session created',
       iceServers: [
-        {
-          urls: [
-            'turn:numb.viagenie.ca',
-            'turns:numb.viagenie.ca'
-          ],
-          username: 'webrtc@live.com',
-          credential: 'muazkh'
-        },
         {
           urls: [
             'turn:relay1.expressturn.com:3480',
