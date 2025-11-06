@@ -46,7 +46,10 @@ const LandingPage = ({ onLogin, onSignup }) => {
               <button onClick={() => openAuth('signup')} className="btn-primary">
                 Get Started Free
               </button>
-              <button className="btn-secondary">
+              <button 
+                className="btn-secondary"
+                onClick={() => window.open('https://youtube.com/shorts/GRCMV1-h9UQ?si=FvrFCUOFmOcv250w', '_blank')}
+              >
                 Watch Demo
               </button>
             </div>
@@ -232,16 +235,10 @@ const LandingPage = ({ onLogin, onSignup }) => {
               </div>
               <p>Connecting minds, building futures. The premier platform for professional mentorship.</p>
               <div className="social-links">
-                <a href="https://facebook.com/peerverse" target="_blank" rel="noopener noreferrer">
-                  <i className="fab fa-facebook"></i>
-                </a>
-                <a href="https://instagram.com/peerverse" target="_blank" rel="noopener noreferrer">
+                <a href="https://www.instagram.com/peerverse_mentorship/?next=%2F&hl=en#" target="_blank" rel="noopener noreferrer">
                   <i className="fab fa-instagram"></i>
                 </a>
-                <a href="https://linkedin.com/company/peerverse" target="_blank" rel="noopener noreferrer">
-                  <i className="fab fa-linkedin"></i>
-                </a>
-                <a href="https://youtube.com/peerverse" target="_blank" rel="noopener noreferrer">
+                <a href="https://youtube.com/@peerverse_mentorship?si=hRKBQ0KRz0Dbyxqj" target="_blank" rel="noopener noreferrer">
                   <i className="fab fa-youtube"></i>
                 </a>
               </div>
@@ -256,12 +253,9 @@ const LandingPage = ({ onLogin, onSignup }) => {
               </ul>
             </div>
             <div className="footer-section">
-              <h4>Support</h4>
+              <h4>Contact</h4>
               <ul>
-                <li><a href="#">Help Center</a></li>
-                <li><a href="#">Contact Us</a></li>
-                <li><a href="#">Community</a></li>
-                <li><a href="#">Status</a></li>
+                <li><a href="mailto:founder@peerverse.in">founder@peerverse.in</a></li>
               </ul>
             </div>
             <div className="footer-section">
