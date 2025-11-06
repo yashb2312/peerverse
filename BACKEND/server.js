@@ -2914,7 +2914,14 @@ app.get('/api/webrtc/status/:userId', async (req, res) => {
       features: ['HD Video', 'Audio', 'Screen Share', 'Chat'],
       maxDuration: 10, // minutes
       iceServers: [
-        // ExpressTurn TURN server ONLY
+        {
+          urls: [
+            'turn:numb.viagenie.ca',
+            'turns:numb.viagenie.ca'
+          ],
+          username: 'webrtc@live.com',
+          credential: 'muazkh'
+        },
         {
           urls: [
             'turn:relay1.expressturn.com:3480',
@@ -2923,7 +2930,17 @@ app.get('/api/webrtc/status/:userId', async (req, res) => {
           ],
           username: '000000002074822364',
           credential: 'WnbuuoA398ZVw+A920nzNkU8eiw='
-        }
+        },
+        {
+          urls: [
+            'turn:openrelay.metered.ca:80',
+            'turn:openrelay.metered.ca:443'
+          ],
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        },
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' }
       ]
     });
   } catch (error) {
@@ -2970,7 +2987,14 @@ app.post('/api/webrtc/session/create', async (req, res) => {
       sessionId: callId,
       message: 'WebRTC session created',
       iceServers: [
-        // ExpressTurn TURN server ONLY
+        {
+          urls: [
+            'turn:numb.viagenie.ca',
+            'turns:numb.viagenie.ca'
+          ],
+          username: 'webrtc@live.com',
+          credential: 'muazkh'
+        },
         {
           urls: [
             'turn:relay1.expressturn.com:3480',
@@ -2979,7 +3003,17 @@ app.post('/api/webrtc/session/create', async (req, res) => {
           ],
           username: '000000002074822364',
           credential: 'WnbuuoA398ZVw+A920nzNkU8eiw='
-        }
+        },
+        {
+          urls: [
+            'turn:openrelay.metered.ca:80',
+            'turn:openrelay.metered.ca:443'
+          ],
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        },
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' }
       ]
     });
   } catch (error) {
