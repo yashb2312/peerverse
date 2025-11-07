@@ -303,7 +303,6 @@ const BlogSection = ({ user, userRole, initialBlogs = null, limit = null }) => {
                 <button 
                   className="delete-btn"
                   onClick={() => handleDeleteBlog(selectedBlog.id)}
-                  style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer' }}
                 >
                   🗑️ Delete Blog
                 </button>

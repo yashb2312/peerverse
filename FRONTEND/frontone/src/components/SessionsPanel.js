@@ -336,18 +336,27 @@ const SessionsPanel = ({ user, onJoinSession }) => {
                 
                 <div className="session-details">
                   <div className="detail-row">
-                    <span className="detail-label">📅 Created:</span>
+                    <span className="detail-label">
+                      <img src="https://img.icons8.com/ios-filled/16/000000/calendar.png" alt="Created" className="detail-icon" />
+                      Created:
+                    </span>
                     <span className="detail-value">{formatTime(session.created_at)}</span>
                   </div>
                   {session.started_at && (
                     <div className="detail-row">
-                      <span className="detail-label">🚀 Started:</span>
+                      <span className="detail-label">
+                        <img src="https://img.icons8.com/ios-filled/16/000000/play.png" alt="Started" className="detail-icon" />
+                        Started:
+                      </span>
                       <span className="detail-value">{formatTime(session.started_at)}</span>
                     </div>
                   )}
                   {session.ended_at && (
                     <div className="detail-row">
-                      <span className="detail-label">⏹️ Ended:</span>
+                      <span className="detail-label">
+                        <img src="https://img.icons8.com/ios-filled/16/000000/stop.png" alt="Ended" className="detail-icon" />
+                        Ended:
+                      </span>
                       <span className="detail-value">{formatTime(session.ended_at)}</span>
                     </div>
                   )}
@@ -368,7 +377,7 @@ const SessionsPanel = ({ user, onJoinSession }) => {
                     className="delete-session-btn"
                     title="Delete Session"
                   >
-                    🗑️
+                    <img src="https://img.icons8.com/ios-filled/16/000000/trash.png" alt="Delete" className="delete-icon" />
                   </button>
                 </div>
               </div>
@@ -403,7 +412,10 @@ const SessionsPanel = ({ user, onJoinSession }) => {
                 
                 {session.status === 'completed' && (
                   <div className="completed-actions">
-                    <span className="meeting-completed">✅ Meeting Completed</span>
+                    <span className="meeting-completed">
+                      <img src="https://img.icons8.com/ios-filled/16/000000/checkmark.png" alt="Completed" className="completed-icon" />
+                      Meeting Completed
+                    </span>
                     {user.role === 'mentee' && (
                       <button 
                         onClick={() => {

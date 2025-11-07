@@ -439,7 +439,10 @@ const MentorDashboard = ({ user, onLogout }) => {
 
       <div className="mentor-payments">
         <h4>Recent Payments</h4>
-        <button className="refresh-payments-btn" onClick={loadMentorPayments}>🔄 Refresh</button>
+        <button className="refresh-payments-btn" onClick={loadMentorPayments}>
+          <img src="https://img.icons8.com/ios-filled/16/000000/refresh.png" alt="Refresh" className="refresh-icon" />
+          Refresh
+        </button>
         {mentorPayments.length === 0 ? (
           <p>No payments yet</p>
         ) : (
@@ -552,29 +555,38 @@ const MentorDashboard = ({ user, onLogout }) => {
       <div className="feedback-list">
         {feedback.length > 0 ? (
           feedback.map((item, index) => (
-            <div key={index} className="feedback-item">
-              <div className="feedback-header-item">
-                <div className="mentee-info">
-                  <strong>{item.mentee_name}</strong>
-                  <span className="session-date">
-                    {new Date(item.created_at).toLocaleDateString()}
-                  </span>
+            <div key={index} className="feedback-card">
+              <div className="feedback-card-header">
+                <div className="mentee-avatar">
+                  <span className="avatar-initial">{item.mentee_name?.charAt(0) || 'M'}</span>
                 </div>
-                <div className="rating-stars">
-                  {[1, 2, 3, 4, 5].map(star => (
-                    <span 
-                      key={star} 
-                      className={`star ${star <= item.rating ? 'filled' : ''}`}
-                    >
-                      ⭐
-                    </span>
-                  ))}
-                  <span className="rating-number">({item.rating}/5)</span>
+                <div className="mentee-details">
+                  <h4 className="mentee-name">{item.mentee_name}</h4>
+                  <p className="session-date">
+                    {new Date(item.created_at).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric'
+                    })}
+                  </p>
+                </div>
+                <div className="rating-section">
+                  <div className="rating-stars">
+                    {[1, 2, 3, 4, 5].map(star => (
+                      <span 
+                        key={star} 
+                        className={`star ${star <= item.rating ? 'filled' : 'empty'}`}
+                      >
+                        ⭐
+                      </span>
+                    ))}
+                  </div>
+                  <span className="rating-score">{item.rating}/5</span>
                 </div>
               </div>
               {item.feedback && (
-                <div className="feedback-text">
-                  "{item.feedback}"
+                <div className="feedback-message">
+                  <p>"{item.feedback}"</p>
                 </div>
               )}
             </div>
@@ -683,43 +695,50 @@ const MentorDashboard = ({ user, onLogout }) => {
             className={`nav-btn ${activeTab === 'home' ? 'active' : ''}`}
             onClick={() => setActiveTab('home')}
           >
-            🏠 Home
+            <img src="https://img.icons8.com/ios-filled/20/000000/home.png" alt="Home" className="nav-icon" />
+            <span className="btn-text">Home</span>
           </button>
           <button 
             className={`nav-btn ${activeTab === 'profile' ? 'active' : ''}`}
             onClick={() => setActiveTab('profile')}
           >
-            👤 Edit Profile
+            <img src="https://img.icons8.com/ios-filled/20/000000/edit-user.png" alt="Edit Profile" className="nav-icon" />
+            <span className="btn-text">Edit Profile</span>
           </button>
           <button 
             className={`nav-btn ${activeTab === 'sessions' ? 'active' : ''}`}
             onClick={() => setActiveTab('sessions')}
           >
-            📅 Sessions
+            <img src="https://img.icons8.com/ios-filled/20/000000/video-conference.png" alt="Sessions" className="nav-icon" />
+            <span className="btn-text">Sessions</span>
           </button>
           <button 
             className={`nav-btn ${activeTab === 'blogs' ? 'active' : ''}`}
             onClick={() => setActiveTab('blogs')}
           >
-            📝 Blogs
+            <img src="https://img.icons8.com/ios-filled/20/000000/blog.png" alt="Blogs" className="nav-icon" />
+            <span className="btn-text">Blogs</span>
           </button>
           <button 
             className={`nav-btn ${activeTab === 'community' ? 'active' : ''}`}
             onClick={() => setActiveTab('community')}
           >
-            👥 Community
+            <img src="https://img.icons8.com/ios-filled/20/000000/people-working-together.png" alt="Community" className="nav-icon" />
+            <span className="btn-text">Community</span>
           </button>
           <button 
             className={`nav-btn ${activeTab === 'wallet' ? 'active' : ''}`}
             onClick={() => { setActiveTab('wallet'); loadMentorPayments(); loadUpiDetails(); }}
           >
-            💰 Wallet
+            <img src="https://img.icons8.com/ios-filled/20/000000/wallet.png" alt="Wallet" className="nav-icon" />
+            <span className="btn-text">Wallet</span>
           </button>
           <button 
             className={`nav-btn ${activeTab === 'feedback' ? 'active' : ''}`}
             onClick={() => setActiveTab('feedback')}
           >
-            ⭐ Feedback
+            <img src="https://img.icons8.com/ios-filled/20/000000/popular.png" alt="Feedback" className="nav-icon" />
+            <span className="btn-text">Feedback</span>
           </button>
           <button 
             className={`nav-btn ${activeTab === 'notifications' ? 'active' : ''}`}
@@ -728,7 +747,8 @@ const MentorDashboard = ({ user, onLogout }) => {
               loadNotifications();
             }}
           >
-            🔔 Notifications
+            <img src="https://img.icons8.com/ios-filled/20/000000/bell.png" alt="Notifications" className="nav-icon" />
+            <span className="btn-text">Notifications</span>
             {unreadCount > 0 && (
               <span className="notification-badge">{unreadCount}</span>
             )}
@@ -737,12 +757,17 @@ const MentorDashboard = ({ user, onLogout }) => {
             className={`nav-btn ${activeTab === 'settings' ? 'active' : ''}`}
             onClick={() => setActiveTab('settings')}
           >
-            ⚙ Settings
-          </button>
-          <button className="nav-btn logout-btn" onClick={onLogout}>
-            🚪 Logout
+            <img src="https://img.icons8.com/ios-filled/20/000000/settings.png" alt="Settings" className="nav-icon" />
+            <span className="btn-text">Settings</span>
           </button>
         </nav>
+        
+        <div className="sidebar-logout">
+          <button className="nav-btn logout-btn" onClick={onLogout}>
+            <img src="https://img.icons8.com/ios-filled/20/ffffff/logout-rounded-left.png" alt="Logout" className="nav-icon" />
+            <span className="btn-text">Logout</span>
+          </button>
+        </div>
       </div>
 
       <div className="main-content">
