@@ -236,10 +236,10 @@ const LandingPage = ({ onLogin, onSignup }) => {
               <p>Connecting minds, building futures. The premier platform for professional mentorship.</p>
               <div className="social-links">
                 <a href="https://www.instagram.com/peerverse_mentorship/?next=%2F&hl=en#" target="_blank" rel="noopener noreferrer">
-                  <i className="fab fa-instagram"></i>
+                  <img src="https://img.icons8.com/color/48/instagram-new.png" alt="Instagram" width="24" height="24" /> Instagram
                 </a>
                 <a href="https://youtube.com/@peerverse_mentorship?si=hRKBQ0KRz0Dbyxqj" target="_blank" rel="noopener noreferrer">
-                  <i className="fab fa-youtube"></i>
+                  <img src="https://img.icons8.com/color/48/youtube-play.png" alt="YouTube" width="24" height="24" /> YouTube
                 </a>
               </div>
             </div>
@@ -248,8 +248,6 @@ const LandingPage = ({ onLogin, onSignup }) => {
               <ul>
                 <li><a href="#features">Features</a></li>
                 <li><a href="#how-it-works">How It Works</a></li>
-                <li><a href="#">Pricing</a></li>
-                <li><a href="#">API</a></li>
               </ul>
             </div>
             <div className="footer-section">
@@ -262,14 +260,11 @@ const LandingPage = ({ onLogin, onSignup }) => {
               <h4>Company</h4>
               <ul>
                 <li><a href="#about">About Us</a></li>
-                <li><a href="#">Careers</a></li>
-                <li><a href="#">Privacy Policy</a></li>
-                <li><a href="#">Terms of Service</a></li>
               </ul>
             </div>
           </div>
           <div className="footer-bottom">
-            <p>&copy; 2024 PeerVerse. All rights reserved.</p>
+            <p>&copy; 2025 PeerVerse. All rights reserved.</p>
           </div>
         </div>
       </footer>
