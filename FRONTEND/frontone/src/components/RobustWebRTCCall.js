@@ -201,27 +201,21 @@ const RobustWebRTCCall = ({ callId, user, onEndCall }) => {
       }
       window.activeMediaStreams.push(stream);
 
-      // Test TURN connectivity before creating peer connection
-      console.log('🧪 Testing TURN server connectivity...');
-      const turnTestResults = await testTurnConnectivity(ICE_SERVERS);
-      logTurnTestResults(turnTestResults);
+      // Create peer connection with enhanced config and force TURN usage
+      console.log('🔧 Creating WebRTC connection with enhanced TURN configuration');
+      console.log('📡 ICE Servers:', ICE_SERVERS);
       
-      const bestServers = getBestTurnServers(turnTestResults);
-      const optimizedIceServers = bestServers.length > 0 ? 
-        ICE_SERVERS.map((server, index) => {
-          const testResult = bestServers.find(r => r.serverIndex === index);
-          return testResult && testResult.status === 'connected' ? server : server;
-        }) : ICE_SERVERS;
-      
-      const optimizedConfig = {
-        ...PC_CONFIG,
-        iceServers: optimizedIceServers
+      // For cross-network calls, start with relay-only policy
+      const forceRelayConfig = {
+        iceServers: ICE_SERVERS,
+        iceTransportPolicy: 'relay', // Force TURN servers only for cross-network
+        iceCandidatePoolSize: 10,
+        bundlePolicy: 'max-bundle',
+        rtcpMuxPolicy: 'require'
       };
       
-      console.log('🔧 Using optimized ICE configuration based on connectivity tests');
-      
-      // Create peer connection with tested config
-      const pc = new RTCPeerConnection(optimizedConfig);
+      const pc = new RTCPeerConnection(forceRelayConfig);
+      console.log('✅ Using relay-only policy for cross-network connectivity');
       peerConnectionRef.current = pc;
 
       // Add tracks
@@ -284,7 +278,7 @@ const RobustWebRTCCall = ({ callId, user, onEndCall }) => {
           
           pc.close();
           
-          const newPc = new RTCPeerConnection(connectionRetryCount === 1 ? PC_CONFIG_RELAY_ONLY : PC_CONFIG);
+          const newPc = new RTCPeerConnection(PC_CONFIG);
           peerConnectionRef.current = newPc;
           
           if (stream) {
@@ -456,7 +450,25 @@ const RobustWebRTCCall = ({ callId, user, onEndCall }) => {
     // ICE candidates with detailed logging
     pc.onicecandidate = (event) => {
       if (event.candidate) {
-        console.log(`🧊 ${user.role} sending ICE candidate:`, event.candidate.type);
+        const candidate = event.candidate;
+        console.log(`🧊 ${user.role} sending ICE candidate:`, {
+          type: candidate.type,
+          protocol: candidate.protocol,
+          address: candidate.address,
+          port: candidate.port,
+          relatedAddress: candidate.relatedAddress,
+          relatedPort: candidate.relatedPort
+        });
+        
+        // Log if this is a TURN relay candidate
+        if (candidate.type === 'relay') {
+          console.log('✅ 🔄 TURN relay candidate generated! Cross-network connectivity should work.');
+        } else if (candidate.type === 'srflx') {
+          console.log('📶 STUN reflexive candidate generated');
+        } else if (candidate.type === 'host') {
+          console.log('🏠 Host candidate generated');
+        }
+        
         socket.emit('ice_candidate', {
           callId,
           candidate: event.candidate,
