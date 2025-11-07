@@ -57,10 +57,45 @@ const CreateBlog = ({ user, onBack }) => {
     files.forEach(file => {
       const reader = new FileReader();
       reader.onload = (event) => {
-        setFormData(prev => ({
-          ...prev,
-          images: [...prev.images, event.target.result]
-        }));
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          // Set fixed aspect ratio (16:9)
+          const targetWidth = 800;
+          const targetHeight = 450;
+          const targetRatio = targetWidth / targetHeight;
+          
+          canvas.width = targetWidth;
+          canvas.height = targetHeight;
+          
+          // Calculate crop dimensions
+          const imgRatio = img.width / img.height;
+          let sourceX = 0, sourceY = 0, sourceWidth = img.width, sourceHeight = img.height;
+          
+          if (imgRatio > targetRatio) {
+            // Image is wider, crop width
+            sourceWidth = img.height * targetRatio;
+            sourceX = (img.width - sourceWidth) / 2;
+          } else {
+            // Image is taller, crop height
+            sourceHeight = img.width / targetRatio;
+            sourceY = (img.height - sourceHeight) / 2;
+          }
+          
+          // Draw cropped image
+          ctx.drawImage(img, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, targetWidth, targetHeight);
+          
+          // Convert to base64
+          const croppedImage = canvas.toDataURL('image/jpeg', 0.8);
+          
+          setFormData(prev => ({
+            ...prev,
+            images: [...prev.images, croppedImage]
+          }));
+        };
+        img.src = event.target.result;
       };
       reader.readAsDataURL(file);
     });

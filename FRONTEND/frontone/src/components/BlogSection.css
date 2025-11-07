@@ -138,15 +138,21 @@
 .blog-image {
   margin: 8px 0 0 0;
   width: 100%;
-  /* No default border on images */
+  height: 200px;
+  overflow: hidden;
+  border-radius: 8px;
 }
 
 .blog-image img {
   width: 100%;
-  height: auto;
-  max-height: 400px;
+  height: 100%;
   object-fit: cover;
   display: block;
+  transition: transform 0.3s ease;
+}
+
+.blog-card:hover .blog-image img {
+  transform: scale(1.02);
 }
 
 .blog-meta {
@@ -290,7 +296,11 @@
 .blog-images img {
   width: 100%;
   height: auto;
+  max-height: 450px;
+  object-fit: cover;
   display: block;
+  border-radius: 8px;
+  margin-bottom: 8px;
 }
 
 .blog-content-modal {

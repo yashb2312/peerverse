@@ -89,32 +89,32 @@ const LandingPage = ({ onLogin, onSignup }) => {
           </p>
           <div className="features-grid">
             <div className="feature-card">
-              <div className="feature-icon">🎥</div>
+              <div className="feature-icon"><img src="https://img.icons8.com/color/48/video-call.png" alt="HD Video Calls" width="48" height="48" /></div>
               <h3>HD Video Calls</h3>
               <p>Crystal clear video calls with advanced WebRTC technology for seamless communication.</p>
             </div>
             <div className="feature-card">
-              <div className="feature-icon">🔒</div>
+              <div className="feature-icon"><img src="https://img.icons8.com/color/48/lock.png" alt="Secure Platform" width="48" height="48" /></div>
               <h3>Secure Platform</h3>
               <p>End-to-end encrypted sessions ensuring your conversations remain private and secure.</p>
             </div>
             <div className="feature-card">
-              <div className="feature-icon">⚡</div>
+              <div className="feature-icon"><img src="https://img.icons8.com/color/48/lightning-bolt.png" alt="Instant Matching" width="48" height="48" /></div>
               <h3>Instant Matching</h3>
               <p>AI-powered matching system connects you with the perfect mentor or mentee instantly.</p>
             </div>
             <div className="feature-card">
-              <div className="feature-icon">📊</div>
+              <div className="feature-icon"><img src="https://img.icons8.com/color/48/bar-chart.png" alt="Progress Tracking" width="48" height="48" /></div>
               <h3>Progress Tracking</h3>
               <p>Track your learning journey with detailed analytics and progress reports.</p>
             </div>
             <div className="feature-card">
-              <div className="feature-icon">💬</div>
+              <div className="feature-icon"><img src="https://img.icons8.com/color/48/chat.png" alt="Real-time Chat" width="48" height="48" /></div>
               <h3>Real-time Chat</h3>
               <p>Integrated chat system for continuous communication beyond video sessions.</p>
             </div>
             <div className="feature-card">
-              <div className="feature-icon">🌍</div>
+              <div className="feature-icon"><img src="https://img.icons8.com/color/48/globe.png" alt="Global Community" width="48" height="48" /></div>
               <h3>Global Community</h3>
               <p>Connect with mentors and mentees from around the world, breaking geographical barriers.</p>
             </div>
@@ -234,7 +234,7 @@ const LandingPage = ({ onLogin, onSignup }) => {
                 <span className="logo-text">PeerVerse</span>
               </div>
               <p>Connecting minds, building futures. The premier platform for professional mentorship.</p>
-              <div className="social-links">
+              <div className="social-links" style={{ display: 'flex', gap: '20px' }}>
                 <a href="https://www.instagram.com/peerverse_mentorship/?next=%2F&hl=en#" target="_blank" rel="noopener noreferrer">
                   <img src="https://img.icons8.com/color/48/instagram-new.png" alt="Instagram" width="24" height="24" /> Instagram
                 </a>

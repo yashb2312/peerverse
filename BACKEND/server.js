@@ -2336,10 +2336,25 @@ app.delete('/api/blogs/:blogId', async (req, res) => {
     const { blogId } = req.params;
     const { mentorId } = req.body;
     
-    await pool.query(
-      'DELETE FROM blogs WHERE id = $1 AND mentor_id = $2',
+    // Delete blog comments first
+    await pool.query('DELETE FROM blog_comments WHERE blog_id = $1', [blogId]);
+    
+    // Delete blog likes
+    await pool.query('DELETE FROM blog_likes WHERE blog_id = $1', [blogId]);
+    
+    // Delete the blog
+    const result = await pool.query(
+      'DELETE FROM blogs WHERE id = $1 AND mentor_id = $2 RETURNING *',
       [blogId, mentorId]
     );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Blog not found or unauthorized' });
+    }
+    
+    // Clear relevant caches
+    clearCachePattern('blogs');
+    clearCachePattern(`mentor_${mentorId}`);
     
     res.json({ message: 'Blog deleted successfully' });
   } catch (error) {

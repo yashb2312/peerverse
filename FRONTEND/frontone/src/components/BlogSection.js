@@ -176,6 +176,31 @@ const BlogSection = ({ user, userRole, initialBlogs = null, limit = null }) => {
     }
   };
 
+  const handleDeleteBlog = async (blogId) => {
+    if (!window.confirm('Are you sure you want to delete this blog? This action cannot be undone.')) {
+      return;
+    }
+    
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${config.API_BASE_URL}/blogs/${blogId}`, {
+        data: { mentorId: user.id },
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Remove blog from list
+      setBlogs(blogs.filter(blog => blog.id !== blogId));
+      
+      // Close modal
+      closeBlogModal();
+      
+      alert('Blog deleted successfully!');
+    } catch (error) {
+      console.error('Failed to delete blog:', error);
+      alert('Failed to delete blog. Please try again.');
+    }
+  };
+
   const openBlogModal = (blog) => {
     setSelectedBlog(blog);
     loadComments(blog.id);
@@ -272,6 +297,15 @@ const BlogSection = ({ user, userRole, initialBlogs = null, limit = null }) => {
                   onClick={() => handleLike(selectedBlog.id)}
                 >
                   {likedBlogs.includes(selectedBlog.id) ? '❤️ Liked' : '🤍 Like'}
+                </button>
+              )}
+              {userRole === 'mentor' && selectedBlog.mentor_id === user.id && (
+                <button 
+                  className="delete-btn"
+                  onClick={() => handleDeleteBlog(selectedBlog.id)}
+                  style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer' }}
+                >
+                  🗑️ Delete Blog
                 </button>
               )}
               <span className="stats">❤️ {selectedBlog.likes_count} 💬 {selectedBlog.comments_count}</span>
