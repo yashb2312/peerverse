@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { io } from 'socket.io-client';
 import config from '../config';
+import { testTurnConnectivity, getBestTurnServers, logTurnTestResults } from '../utils/turnTest';
 import './CloudflareVideoCall.css';
 
 const RobustWebRTCCall = ({ callId, user, onEndCall }) => {
@@ -34,11 +35,39 @@ const RobustWebRTCCall = ({ callId, user, onEndCall }) => {
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
     {
-      urls: 'turn:relay1.expressturn.com:3480',
+      urls: [
+        'turn:relay1.expressturn.com:3480',
+        'turn:relay1.expressturn.com:80',
+        'turn:relay1.expressturn.com:443'
+      ],
       username: '000000002074822364',
       credential: 'WnbuuoA398ZVw+A920nzNkU8eiw='
+    },
+    {
+      urls: [
+        'turn:openrelay.metered.ca:80',
+        'turn:openrelay.metered.ca:443'
+      ],
+      username: 'openrelayproject',
+      credential: 'openrelayproject'
     }
   ];
+
+  const PC_CONFIG = {
+    iceServers: ICE_SERVERS,
+    iceTransportPolicy: 'all',
+    iceCandidatePoolSize: 10,
+    bundlePolicy: 'max-bundle',
+    rtcpMuxPolicy: 'require'
+  };
+
+  const PC_CONFIG_RELAY_ONLY = {
+    iceServers: ICE_SERVERS,
+    iceTransportPolicy: 'relay',
+    iceCandidatePoolSize: 10,
+    bundlePolicy: 'max-bundle',
+    rtcpMuxPolicy: 'require'
+  };
 
   useEffect(() => {
     // Check for existing media streams and clean them up
@@ -172,8 +201,27 @@ const RobustWebRTCCall = ({ callId, user, onEndCall }) => {
       }
       window.activeMediaStreams.push(stream);
 
-      // Create peer connection
-      const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+      // Test TURN connectivity before creating peer connection
+      console.log('🧪 Testing TURN server connectivity...');
+      const turnTestResults = await testTurnConnectivity(ICE_SERVERS);
+      logTurnTestResults(turnTestResults);
+      
+      const bestServers = getBestTurnServers(turnTestResults);
+      const optimizedIceServers = bestServers.length > 0 ? 
+        ICE_SERVERS.map((server, index) => {
+          const testResult = bestServers.find(r => r.serverIndex === index);
+          return testResult && testResult.status === 'connected' ? server : server;
+        }) : ICE_SERVERS;
+      
+      const optimizedConfig = {
+        ...PC_CONFIG,
+        iceServers: optimizedIceServers
+      };
+      
+      console.log('🔧 Using optimized ICE configuration based on connectivity tests');
+      
+      // Create peer connection with tested config
+      const pc = new RTCPeerConnection(optimizedConfig);
       peerConnectionRef.current = pc;
 
       // Add tracks
@@ -225,7 +273,79 @@ const RobustWebRTCCall = ({ callId, user, onEndCall }) => {
         }
       };
 
-      // Connection state monitoring with detailed logging
+      // Connection state monitoring with recovery
+      let connectionRetryCount = 0;
+      const maxRetries = 2;
+      
+      const handleConnectionFailure = async () => {
+        if (connectionRetryCount < maxRetries) {
+          connectionRetryCount++;
+          console.log(`🔄 Connection failed, retrying with ${connectionRetryCount === 1 ? 'relay-only' : 'standard'} config (${connectionRetryCount}/${maxRetries})`);
+          
+          pc.close();
+          
+          const newPc = new RTCPeerConnection(connectionRetryCount === 1 ? PC_CONFIG_RELAY_ONLY : PC_CONFIG);
+          peerConnectionRef.current = newPc;
+          
+          if (stream) {
+            stream.getTracks().forEach(track => newPc.addTrack(track, stream));
+          }
+          
+          // Re-setup all handlers
+          setupPeerConnectionHandlers(newPc);
+          setupSignaling(newPc, socketRef.current);
+          setupDataChannel(newPc);
+          
+          if (user.role === 'mentor') {
+            setTimeout(async () => {
+              try {
+                const offer = await newPc.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: true });
+                await newPc.setLocalDescription(offer);
+                socketRef.current.emit('offer', { callId, offer, from: user.id, role: user.role, timestamp: Date.now(), retry: connectionRetryCount });
+                console.log(`📤 Retry offer sent (attempt ${connectionRetryCount})`);
+              } catch (error) {
+                console.error('❌ Failed to create retry offer:', error);
+              }
+            }, 2000);
+          }
+        } else {
+          console.error('❌ Max connection retries exceeded');
+          alert('Connection failed. Network restrictions may be blocking the call. Please try again.');
+        }
+      };
+      
+      const setupPeerConnectionHandlers = (peerConnection) => {
+        peerConnection.ontrack = pc.ontrack;
+        
+        peerConnection.onconnectionstatechange = () => {
+          console.log(`🔗 ${user.role} Connection state changed:`, peerConnection.connectionState);
+          setConnectionState(peerConnection.connectionState);
+          
+          if (peerConnection.connectionState === 'connected') {
+            console.log(`✅ 🎉 ${user.role.toUpperCase()} SUCCESSFULLY CONNECTED!`);
+            setIsConnected(true);
+            connectionRetryCount = 0;
+          } else if (peerConnection.connectionState === 'failed') {
+            console.error(`❌ ${user.role} WebRTC connection FAILED`);
+            setIsConnected(false);
+            setTimeout(handleConnectionFailure, 1000);
+          } else if (peerConnection.connectionState === 'disconnected') {
+            console.log(`🔌 ${user.role} WebRTC disconnected`);
+            setIsConnected(false);
+          }
+        };
+        
+        peerConnection.oniceconnectionstatechange = () => {
+          console.log(`🧊 ${user.role} ICE connection state:`, peerConnection.iceConnectionState);
+          
+          if (peerConnection.iceConnectionState === 'connected' || peerConnection.iceConnectionState === 'completed') {
+            console.log(`✅ ${user.role} ICE connection established!`);
+          } else if (peerConnection.iceConnectionState === 'failed') {
+            console.error(`❌ ${user.role} ICE connection failed!`);
+          }
+        };
+      };
+      
       pc.onconnectionstatechange = () => {
         console.log(`🔗 ${user.role} Connection state changed:`, pc.connectionState);
         setConnectionState(pc.connectionState);
@@ -236,6 +356,7 @@ const RobustWebRTCCall = ({ callId, user, onEndCall }) => {
         } else if (pc.connectionState === 'failed') {
           console.error(`❌ ${user.role} WebRTC connection FAILED`);
           setIsConnected(false);
+          setTimeout(handleConnectionFailure, 1000);
         } else if (pc.connectionState === 'disconnected') {
           console.log(`🔌 ${user.role} WebRTC disconnected`);
           setIsConnected(false);

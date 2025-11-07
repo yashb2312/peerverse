@@ -2903,7 +2903,7 @@ app.get('/api/webrtc/answer/:callId', async (req, res) => {
   }
 });
 
-// WebRTC Connection Status endpoint with ICE servers
+// WebRTC Connection Status endpoint with enhanced ICE servers
 app.get('/api/webrtc/status/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
@@ -2914,6 +2914,8 @@ app.get('/api/webrtc/status/:userId', async (req, res) => {
       features: ['HD Video', 'Audio', 'Screen Share', 'Chat'],
       maxDuration: 10, // minutes
       iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
         {
           urls: [
             'turn:relay1.expressturn.com:3480',
@@ -2930,10 +2932,20 @@ app.get('/api/webrtc/status/:userId', async (req, res) => {
           ],
           username: 'openrelayproject',
           credential: 'openrelayproject'
-        },
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' }
-      ]
+        }
+      ],
+      pcConfig: {
+        iceTransportPolicy: 'all',
+        iceCandidatePoolSize: 10,
+        bundlePolicy: 'max-bundle',
+        rtcpMuxPolicy: 'require'
+      },
+      pcConfigRelayOnly: {
+        iceTransportPolicy: 'relay',
+        iceCandidatePoolSize: 10,
+        bundlePolicy: 'max-bundle',
+        rtcpMuxPolicy: 'require'
+      }
     });
   } catch (error) {
     console.error('WebRTC status error:', error);
@@ -2964,7 +2976,7 @@ app.post('/api/webrtc/test-connectivity', async (req, res) => {
   }
 });
 
-// WebRTC Session Management with multiple TURN servers
+// WebRTC Session Management with enhanced configuration
 app.post('/api/webrtc/session/create', async (req, res) => {
   try {
     const { callId, userId } = req.body;
@@ -2977,8 +2989,10 @@ app.post('/api/webrtc/session/create', async (req, res) => {
     
     res.json({
       sessionId: callId,
-      message: 'WebRTC session created',
+      message: 'WebRTC session created with enhanced NAT traversal',
       iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
         {
           urls: [
             'turn:relay1.expressturn.com:3480',
@@ -2995,10 +3009,12 @@ app.post('/api/webrtc/session/create', async (req, res) => {
           ],
           username: 'openrelayproject',
           credential: 'openrelayproject'
-        },
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' }
-      ]
+        }
+      ],
+      connectionPolicy: {
+        primary: 'all', // Try both STUN and TURN
+        fallback: 'relay' // Force TURN on failure
+      }
     });
   } catch (error) {
     console.error('Create WebRTC session error:', error);
