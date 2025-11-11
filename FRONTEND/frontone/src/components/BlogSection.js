@@ -299,10 +299,16 @@ const BlogSection = ({ user, userRole, initialBlogs = null, limit = null }) => {
                   {likedBlogs.includes(selectedBlog.id) ? '❤️ Liked' : '🤍 Like'}
                 </button>
               )}
-              {userRole === 'mentor' && selectedBlog.mentor_id === user.id && (
+              {userRole === 'mentor' && (
                 <button 
                   className="delete-btn"
-                  onClick={() => handleDeleteBlog(selectedBlog.id)}
+                  onClick={() => {
+                    if (selectedBlog.mentor_id == user.id || selectedBlog.user_id == user.id) {
+                      handleDeleteBlog(selectedBlog.id);
+                    } else {
+                      alert('You can only delete your own blogs');
+                    }
+                  }}
                   style={{ 
                     backgroundColor: '#dc3545', 
                     color: 'white', 
@@ -310,17 +316,23 @@ const BlogSection = ({ user, userRole, initialBlogs = null, limit = null }) => {
                     padding: '8px 16px', 
                     borderRadius: '6px', 
                     cursor: 'pointer',
-                    display: 'flex',
+                    display: 'flex !important',
                     alignItems: 'center',
                     gap: '6px',
                     fontSize: '14px',
-                    fontWeight: '600'
+                    fontWeight: '600',
+                    zIndex: 1000,
+                    position: 'relative'
                   }}
                 >
                   🗑️ Delete Blog
                 </button>
               )}
-              {console.log('Debug - userRole:', userRole, 'selectedBlog.mentor_id:', selectedBlog.mentor_id, 'user.id:', user.id)}
+              {userRole === 'mentor' && (
+                <div style={{fontSize: '12px', color: '#666'}}>
+                  Debug: mentor_id={selectedBlog.mentor_id}, user_id={selectedBlog.user_id}, current_user={user.id}
+                </div>
+              )}
               <span className="stats">❤️ {selectedBlog.likes_count} 💬 {selectedBlog.comments_count}</span>
             </div>
 

@@ -585,24 +585,41 @@ const MenteeDashboard = ({ user, onLogout, onJoinSession }) => {
     try {
       const token = localStorage.getItem('token');
       
-      // Create payment for the session
-      const paymentResponse = await axios.post(`${config.API_BASE_URL}/create-payment`, {
-        callId: sessionId,
-        amount: 100,
-        menteeId: user.id
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      // Try multiple payment endpoints
+      let paymentResponse;
+      try {
+        paymentResponse = await axios.post(`${config.API_BASE_URL}/create-payment`, {
+          callId: sessionId,
+          amount: 100,
+          menteeId: user.id
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      } catch (err) {
+        // Try alternative endpoint
+        paymentResponse = await axios.post(`${config.API_BASE_URL}/payments/create`, {
+          sessionId: sessionId,
+          amount: 100,
+          userId: user.id,
+          type: 'session_payment'
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
       
-      if (paymentResponse.data.success) {
-        // Redirect to payment gateway
-        window.location.href = paymentResponse.data.paymentUrl;
+      if (paymentResponse.data.success || paymentResponse.data.paymentUrl) {
+        const paymentUrl = paymentResponse.data.paymentUrl || paymentResponse.data.url;
+        if (paymentUrl) {
+          window.location.href = paymentUrl;
+        } else {
+          alert('Payment URL not received. Please contact support.');
+        }
       } else {
         alert('Failed to initiate payment. Please try again.');
       }
     } catch (error) {
       console.error('Payment initiation failed:', error);
-      alert('Failed to initiate payment. Please try again.');
+      alert(`Payment failed: ${error.response?.data?.message || error.message}`);
     }
   };
 
