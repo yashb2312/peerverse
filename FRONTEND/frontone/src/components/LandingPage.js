@@ -179,9 +179,9 @@ const LandingPage = ({ onLogin, onSignup }) => {
               <div className="contributors-grid">
                 <div className="team-member">
                   <div className="member-photo">
-                    <img src="/shreephoto.jpg" alt="Shreeja Shivaprakash Gundlur" className="member-image" />
+                    <img src="/hriyanshi_photo.png" alt="Shriyanshi Jain" className="member-image" />
                   </div>
-                  <h3>Shreeja Shivaprakash Gundlur</h3>
+                  <h3>Shriyanshi Jain</h3>
                   <p className="member-title">Digital Marketing Manager & Cybersecurity Engineer</p>
                   <p className="member-bio">
                     BTech CSE from MIT ADT. Expert in digital marketing strategies and cybersecurity solutions.
@@ -199,9 +199,9 @@ const LandingPage = ({ onLogin, onSignup }) => {
                 </div>
                 <div className="team-member">
                   <div className="member-photo">
-                    <img src="/jeevan.jpg" alt="Jeevan" className="member-image" />
+                    <img src="/madhu_photo.png" alt="Madhusudan Ladda" className="member-image" />
                   </div>
-                  <h3>Jeevan</h3>
+                  <h3>Madhusudan Ladda</h3>
                   <p className="member-title">Backend JS & Express.js Developer</p>
                   <p className="member-bio">
                     Specializes in backend development with JavaScript and Express.js, creating robust server-side solutions.
