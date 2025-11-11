@@ -46,6 +46,7 @@ const BlogSection = ({ user, userRole, initialBlogs = null, limit = null }) => {
       
       console.log('Loading blogs from URL:', url);
       console.log('User role:', userRole, 'User ID:', user.id);
+      console.log('Token present:', !!token);
       
       const response = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` }
@@ -53,10 +54,13 @@ const BlogSection = ({ user, userRole, initialBlogs = null, limit = null }) => {
       
       console.log('Blogs API response:', response.data);
       const blogsData = response.data.blogs || [];
-      console.log('Setting blogs data:', blogsData);
+      console.log('Setting blogs data:', blogsData.length, 'blogs');
+      console.log('First blog sample:', blogsData[0]);
       setBlogs(blogsData);
     } catch (error) {
       console.error('Failed to load blogs:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
     } finally {
       setLoading(false);
     }
@@ -183,10 +187,20 @@ const BlogSection = ({ user, userRole, initialBlogs = null, limit = null }) => {
     
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`${config.API_BASE_URL}/blogs/${blogId}`, {
+      console.log('Deleting blog:', {
+        blogId,
+        mentorId: user.id,
+        selectedBlog: selectedBlog,
+        userRole,
+        token: token ? 'present' : 'missing'
+      });
+      
+      const response = await axios.delete(`${config.API_BASE_URL}/blogs/${blogId}`, {
         data: { mentorId: user.id },
         headers: { Authorization: `Bearer ${token}` }
       });
+      
+      console.log('Delete response:', response.data);
       
       // Remove blog from list
       setBlogs(blogs.filter(blog => blog.id !== blogId));
@@ -197,7 +211,11 @@ const BlogSection = ({ user, userRole, initialBlogs = null, limit = null }) => {
       alert('Blog deleted successfully!');
     } catch (error) {
       console.error('Failed to delete blog:', error);
-      alert('Failed to delete blog. Please try again.');
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      
+      const errorMessage = error.response?.data?.error || 'Failed to delete blog. Please try again.';
+      alert(`Error: ${errorMessage}`);
     }
   };
 
@@ -227,41 +245,60 @@ const BlogSection = ({ user, userRole, initialBlogs = null, limit = null }) => {
     <div className="blog-section">
       <div className="blog-header">
         <h2>{userRole === 'mentor' ? 'My Blogs' : 'Latest Blogs'}</h2>
-        <button onClick={() => {
-          // Clear cache and reload
-          const cacheKey = `blogs_${userRole}_${user.id}`;
-          localStorage.removeItem(cacheKey);
-          localStorage.removeItem(`${cacheKey}_time`);
-          setLastFetch(null);
-          loadBlogs();
-        }} className="refresh-btn">🔄 Refresh</button>
+        <div className="header-actions">
+          <button onClick={() => {
+            // Clear cache and reload
+            const cacheKey = `blogs_${userRole}_${user.id}`;
+            localStorage.removeItem(cacheKey);
+            localStorage.removeItem(`${cacheKey}_time`);
+            setLastFetch(null);
+            loadBlogs();
+          }} className="refresh-btn">🔄 Refresh</button>
+          {userRole === 'mentor' && (
+            <small style={{ color: '#666', fontSize: '12px', marginLeft: '8px' }}>
+              User ID: {user.id} | Role: {userRole}
+            </small>
+          )}
+        </div>
       </div>
 
       {loading ? (
         <div className="loading">Loading blogs...</div>
       ) : (
         <div className="blogs-grid">
-          {blogs.map(blog => (
-            <div key={blog.id} className="blog-card" onClick={() => openBlogModal(blog)}>
-              {blog.images && blog.images.length > 0 && (
-                <div className="blog-image">
-                  <img src={blog.images[0]} alt={blog.title} />
-                </div>
+          {blogs.length === 0 ? (
+            <div className="no-blogs">
+              <p>{userRole === 'mentor' ? 'You haven\'t created any blogs yet.' : 'No blogs available.'}</p>
+              {userRole === 'mentor' && (
+                <p>Click "Create Blog" to write your first blog post!</p>
               )}
-              <div className="blog-content">
-                <h3>{blog.title}</h3>
-                <p className="blog-description">{blog.description}</p>
-                <div className="blog-meta">
-                  <span className="blog-author">By {blog.mentor_name}</span>
-                  <span className="blog-date">{new Date(blog.created_at).toLocaleDateString()}</span>
-                </div>
-                <div className="blog-stats">
-                  <span>❤️ {blog.likes_count}</span>
-                  <span>💬 {blog.comments_count}</span>
+            </div>
+          ) : (
+            blogs.map(blog => (
+              <div key={blog.id} className="blog-card" onClick={() => openBlogModal(blog)}>
+                {blog.images && blog.images.length > 0 && (
+                  <div className="blog-image">
+                    <img src={blog.images[0]} alt={blog.title} />
+                  </div>
+                )}
+                <div className="blog-content">
+                  <h3>{blog.title}</h3>
+                  <p className="blog-description">{blog.description}</p>
+                  <div className="blog-meta">
+                    <span className="blog-author">By {blog.mentor_name}</span>
+                    <span className="blog-date">{new Date(blog.created_at).toLocaleDateString()}</span>
+                    {userRole === 'mentor' && (
+                      <span className="blog-id" style={{ fontSize: '10px', color: '#999' }}>ID: {blog.id}</span>
+                    )}
+                  </div>
+                  <div className="blog-stats">
+                    <span>❤️ {blog.likes_count}</span>
+                    <span>💬 {blog.comments_count}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       )}
 
@@ -300,35 +337,41 @@ const BlogSection = ({ user, userRole, initialBlogs = null, limit = null }) => {
                 </button>
               )}
               {userRole === 'mentor' && (
-                <button 
-                  className="delete-btn"
-                  onClick={() => {
-                    const blogOwnerId = selectedBlog.mentor_id || selectedBlog.user_id;
-                    const currentUserId = user.id;
-                    if (String(blogOwnerId) === String(currentUserId)) {
+                <div className="mentor-actions">
+                  <button 
+                    className="delete-btn"
+                    onClick={() => {
+                      console.log('Delete button clicked:', {
+                        blogId: selectedBlog.id,
+                        blogMentorId: selectedBlog.mentor_id,
+                        currentUserId: user.id,
+                        userRole,
+                        selectedBlog
+                      });
                       handleDeleteBlog(selectedBlog.id);
-                    } else {
-                      alert('You can only delete your own blogs');
-                    }
-                  }}
-                  style={{ 
-                    backgroundColor: '#dc3545', 
-                    color: 'white', 
-                    border: 'none', 
-                    padding: '8px 16px', 
-                    borderRadius: '6px', 
-                    cursor: 'pointer',
-                    display: 'flex !important',
-                    alignItems: 'center',
-                    gap: '6px',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    zIndex: 1000,
-                    position: 'relative'
-                  }}
-                >
-                  🗑️ Delete Blog
-                </button>
+                    }}
+                    style={{ 
+                      backgroundColor: '#dc3545', 
+                      color: 'white', 
+                      border: 'none', 
+                      padding: '8px 16px', 
+                      borderRadius: '6px', 
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      zIndex: 1000,
+                      position: 'relative'
+                    }}
+                  >
+                    🗑️ Delete Blog
+                  </button>
+                  <small style={{ color: '#666', fontSize: '12px', marginLeft: '8px' }}>
+                    Blog ID: {selectedBlog.id} | Owner: {selectedBlog.mentor_id} | You: {user.id}
+                  </small>
+                </div>
               )}
 
               <span className="stats">❤️ {selectedBlog.likes_count} 💬 {selectedBlog.comments_count}</span>
