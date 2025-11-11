@@ -245,60 +245,41 @@ const BlogSection = ({ user, userRole, initialBlogs = null, limit = null }) => {
     <div className="blog-section">
       <div className="blog-header">
         <h2>{userRole === 'mentor' ? 'My Blogs' : 'Latest Blogs'}</h2>
-        <div className="header-actions">
-          <button onClick={() => {
-            // Clear cache and reload
-            const cacheKey = `blogs_${userRole}_${user.id}`;
-            localStorage.removeItem(cacheKey);
-            localStorage.removeItem(`${cacheKey}_time`);
-            setLastFetch(null);
-            loadBlogs();
-          }} className="refresh-btn">🔄 Refresh</button>
-          {userRole === 'mentor' && (
-            <small style={{ color: '#666', fontSize: '12px', marginLeft: '8px' }}>
-              User ID: {user.id} | Role: {userRole}
-            </small>
-          )}
-        </div>
+        <button onClick={() => {
+          // Clear cache and reload
+          const cacheKey = `blogs_${userRole}_${user.id}`;
+          localStorage.removeItem(cacheKey);
+          localStorage.removeItem(`${cacheKey}_time`);
+          setLastFetch(null);
+          loadBlogs();
+        }} className="refresh-btn">🔄 Refresh</button>
       </div>
 
       {loading ? (
         <div className="loading">Loading blogs...</div>
       ) : (
         <div className="blogs-grid">
-          {blogs.length === 0 ? (
-            <div className="no-blogs">
-              <p>{userRole === 'mentor' ? 'You haven\'t created any blogs yet.' : 'No blogs available.'}</p>
-              {userRole === 'mentor' && (
-                <p>Click "Create Blog" to write your first blog post!</p>
+          {blogs.map(blog => (
+            <div key={blog.id} className="blog-card" onClick={() => openBlogModal(blog)}>
+              {blog.images && blog.images.length > 0 && (
+                <div className="blog-image">
+                  <img src={blog.images[0]} alt={blog.title} />
+                </div>
               )}
-            </div>
-          ) : (
-            blogs.map(blog => (
-              <div key={blog.id} className="blog-card" onClick={() => openBlogModal(blog)}>
-                {blog.images && blog.images.length > 0 && (
-                  <div className="blog-image">
-                    <img src={blog.images[0]} alt={blog.title} />
-                  </div>
-                )}
-                <div className="blog-content">
-                  <h3>{blog.title}</h3>
-                  <p className="blog-description">{blog.description}</p>
-                  <div className="blog-meta">
-                    <span className="blog-author">By {blog.mentor_name}</span>
-                    <span className="blog-date">{new Date(blog.created_at).toLocaleDateString()}</span>
-                    {userRole === 'mentor' && (
-                      <span className="blog-id" style={{ fontSize: '10px', color: '#999' }}>ID: {blog.id}</span>
-                    )}
-                  </div>
-                  <div className="blog-stats">
-                    <span>❤️ {blog.likes_count}</span>
-                    <span>💬 {blog.comments_count}</span>
-                  </div>
+              <div className="blog-content">
+                <h3>{blog.title}</h3>
+                <p className="blog-description">{blog.description}</p>
+                <div className="blog-meta">
+                  <span className="blog-author">By {blog.mentor_name}</span>
+                  <span className="blog-date">{new Date(blog.created_at).toLocaleDateString()}</span>
+                </div>
+                <div className="blog-stats">
+                  <span>❤️ {blog.likes_count}</span>
+                  <span>💬 {blog.comments_count}</span>
                 </div>
               </div>
-            ))
-          )}
+            </div>
+          ))}
         </div>
       )}
 

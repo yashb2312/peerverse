@@ -2275,24 +2275,9 @@ app.get('/api/blogs', async (req, res) => {
   }
 });
 
-app.get('/api/blogs/mentor/:mentorId', authenticateToken, async (req, res) => {
+app.get('/api/blogs/mentor/:mentorId', async (req, res) => {
   try {
     const { mentorId } = req.params;
-    const tokenUserId = req.user.userId;
-    const tokenUserRole = req.user.role;
-    
-    console.log('Get mentor blogs request:', {
-      mentorId,
-      tokenUserId,
-      tokenUserRole,
-      match: String(mentorId) === String(tokenUserId)
-    });
-    
-    // Verify the user is requesting their own blogs or is authorized
-    if (tokenUserRole === 'mentor' && String(mentorId) !== String(tokenUserId)) {
-      return res.status(403).json({ error: 'You can only view your own blogs' });
-    }
-    
     const cacheKey = `mentor_blogs_${mentorId}`;
     const cached = getFromCache(cacheKey);
     if (cached) {
@@ -2303,8 +2288,6 @@ app.get('/api/blogs/mentor/:mentorId', authenticateToken, async (req, res) => {
       'SELECT id, title, description, content, category, tags, images, likes_count, comments_count, created_at, is_published, mentor_id FROM blogs WHERE mentor_id = $1 ORDER BY created_at DESC LIMIT 20',
       [mentorId]
     );
-    
-    console.log(`Found ${result.rows.length} blogs for mentor ${mentorId}`);
     
     const blogs = result.rows.map(blog => ({
       id: blog.id,
@@ -2329,20 +2312,9 @@ app.get('/api/blogs/mentor/:mentorId', authenticateToken, async (req, res) => {
   }
 });
 
-app.post('/api/blogs', authenticateToken, async (req, res) => {
+app.post('/api/blogs', async (req, res) => {
   try {
     const { mentorId, title, description, content, category, tags, images } = req.body;
-    const tokenUserId = req.user.userId;
-    const tokenUserRole = req.user.role;
-    
-    // Verify the user is a mentor and creating blog for themselves
-    if (tokenUserRole !== 'mentor') {
-      return res.status(403).json({ error: 'Only mentors can create blogs' });
-    }
-    
-    if (String(mentorId) !== String(tokenUserId)) {
-      return res.status(403).json({ error: 'You can only create blogs for yourself' });
-    }
     
     const result = await pool.query(
       'INSERT INTO blogs (mentor_id, title, description, content, category, tags, images) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
@@ -2360,48 +2332,10 @@ app.post('/api/blogs', authenticateToken, async (req, res) => {
   }
 });
 
-// JWT Authentication middleware
-const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-  
-  if (!token) {
-    return res.status(401).json({ error: 'Access token required' });
-  }
-  
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) {
-      console.error('JWT verification failed:', err);
-      return res.status(403).json({ error: 'Invalid or expired token' });
-    }
-    req.user = user;
-    next();
-  });
-};
-
-app.delete('/api/blogs/:blogId', authenticateToken, async (req, res) => {
+app.delete('/api/blogs/:blogId', async (req, res) => {
   try {
     const { blogId } = req.params;
     const { mentorId } = req.body;
-    const tokenUserId = req.user.userId;
-    const tokenUserRole = req.user.role;
-    
-    console.log('Blog deletion request:', {
-      blogId,
-      mentorId,
-      tokenUserId,
-      tokenUserRole,
-      match: String(mentorId) === String(tokenUserId)
-    });
-    
-    // Verify the user is a mentor and owns the blog
-    if (tokenUserRole !== 'mentor') {
-      return res.status(403).json({ error: 'Only mentors can delete blogs' });
-    }
-    
-    if (String(mentorId) !== String(tokenUserId)) {
-      return res.status(403).json({ error: 'You can only delete your own blogs' });
-    }
     
     // Delete blog comments first
     await pool.query('DELETE FROM blog_comments WHERE blog_id = $1', [blogId]);
@@ -2421,8 +2355,6 @@ app.delete('/api/blogs/:blogId', authenticateToken, async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Blog not found or unauthorized' });
     }
-    
-    console.log('Blog deleted successfully:', result.rows[0]);
     
     // Clear relevant caches
     clearCachePattern('blogs');
