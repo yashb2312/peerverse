@@ -330,11 +330,7 @@ const BlogSection = ({ user, userRole, initialBlogs = null, limit = null }) => {
                   🗑️ Delete Blog
                 </button>
               )}
-              {userRole === 'mentor' && (
-                <div style={{fontSize: '12px', color: '#666'}}>
-                  Debug: mentor_id={selectedBlog.mentor_id}, user_id={selectedBlog.user_id}, current_user={user.id}
-                </div>
-              )}
+
               <span className="stats">❤️ {selectedBlog.likes_count} 💬 {selectedBlog.comments_count}</span>
             </div>
 

@@ -7,6 +7,7 @@ const MentorProfileEditor = ({ user, onClose, onSave, embedded = false }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [profileCache, setProfileCache] = useState(null);
   const [profileData, setProfileData] = useState({
@@ -217,6 +218,9 @@ const MentorProfileEditor = ({ user, onClose, onSave, embedded = false }) => {
         ...prev,
         [currentSection === 'basic' ? 'basicInfo' : currentSection]: sectionData
       }));
+      
+      setSuccessMessage('Section saved successfully!');
+      setTimeout(() => setSuccessMessage(''), 3000);
     } catch (error) {
       console.error('Save section error:', error);
       setError(error.response?.data?.error || 'Failed to save section');
@@ -651,6 +655,7 @@ const MentorProfileEditor = ({ user, onClose, onSave, embedded = false }) => {
         {renderStepContent()}
         
         {error && <div className="error">{error}</div>}
+        {successMessage && <div className="success">{successMessage}</div>}
         
         <div className="editor-actions">
           <button onClick={saveSection} disabled={loading} className="save-section-btn">
