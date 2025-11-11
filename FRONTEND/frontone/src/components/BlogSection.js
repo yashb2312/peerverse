@@ -303,7 +303,9 @@ const BlogSection = ({ user, userRole, initialBlogs = null, limit = null }) => {
                 <button 
                   className="delete-btn"
                   onClick={() => {
-                    if (selectedBlog.mentor_id == user.id || selectedBlog.user_id == user.id) {
+                    const blogOwnerId = selectedBlog.mentor_id || selectedBlog.user_id;
+                    const currentUserId = user.id;
+                    if (String(blogOwnerId) === String(currentUserId)) {
                       handleDeleteBlog(selectedBlog.id);
                     } else {
                       alert('You can only delete your own blogs');
