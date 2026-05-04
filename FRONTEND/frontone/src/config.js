@@ -5,7 +5,7 @@ const config = {
   SOCKET_URL: process.env.NODE_ENV === 'production'
     ? 'https://peerverse-production.up.railway.app'
     : 'http://localhost:3000',
-  // Network timeout settings
+  // Network timeout sett
   TIMEOUT: 15000, // 15 seconds
   RETRY_ATTEMPTS: 3
 };
