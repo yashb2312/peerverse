@@ -1,9 +1,9 @@
 const config = {
   API_BASE_URL: process.env.NODE_ENV === 'production' 
-    ? 'https://gleaming-inspiration-production-5a37.up.railway.app/api'
+    ? 'https://peerverse-production.up.railway.app/api'
     : 'http://localhost:3000/api',
   SOCKET_URL: process.env.NODE_ENV === 'production'
-    ? 'https://gleaming-inspiration-production-5a37.up.railway.app'
+    ? 'https://peerverse-production.up.railway.app'
     : 'http://localhost:3000',
   // Network timeout settings
   TIMEOUT: 15000, // 15 seconds
